@@ -1,6 +1,7 @@
 src/main/resources/application.properties
 .gitignore
 
-src/main/resources/application.properties
+src/main/resources/static/css/styles.css
 
 src/main/java/com/example/demo/FinalApplication.java
+
