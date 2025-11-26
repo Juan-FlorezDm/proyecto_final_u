@@ -17,7 +17,6 @@ public class UsuarioService {
     private PasswordEncoder passwordEncoder;
 
     public void registrarCliente(Usuario usuario) {
-        // Codificar la contraseña
         usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
         // Asignar rol CLIENTE automáticamente
         usuario.setRol(Rol.CLIENTE);

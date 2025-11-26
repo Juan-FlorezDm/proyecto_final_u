@@ -7,11 +7,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin")
@@ -27,23 +29,61 @@ public class AdminController {
         return "admin/dashboard";
     }
 
-    @GetMapping("/productos")
-    public String listarProductos(Model model) {
-        List<Producto> productos = productoService.obtenerTodos();
-        
-        // Calcular el stock total para cada producto
-        Map<Long, Integer> stockTotales = new HashMap<>();
-        for (Producto producto : productos) {
-            int stockTotal = producto.getTallas().stream()
-                    .mapToInt(ProductoTalla::getStock)
-                    .sum();
-            stockTotales.put(producto.getId(), stockTotal);
-        }
-        
-        model.addAttribute("productos", productos);
-        model.addAttribute("stockTotales", stockTotales);
-        return "admin/productos";
+   @GetMapping("/productos")
+public String listarProductos(
+        @RequestParam(required = false) String categoria,
+        @RequestParam(required = false) String stock,
+        Model model) {
+    
+    List<Producto> productos;
+    
+    // Aplicar filtro de categoría
+    if (categoria != null && !categoria.isEmpty() && !categoria.equals("todas")) {
+        productos = productoService.obtenerPorCategoria(categoria);
+    } else {
+        productos = productoService.obtenerTodos();
     }
+    
+    // Calcular el stock total para cada producto
+    Map<Long, Integer> stockTotales = new HashMap<>();
+    for (Producto producto : productos) {
+        int stockTotal = producto.getTallas().stream()
+                .mapToInt(ProductoTalla::getStock)
+                .sum();
+        stockTotales.put(producto.getId(), stockTotal);
+    }
+    
+    // Aplicar filtro de stock si está presente
+    if (stock != null && !stock.isEmpty()) {
+        productos = filtrarPorStock(productos, stockTotales, stock);
+    }
+    
+    // Obtener categorías únicas para el dropdown
+    List<String> categorias = productoService.obtenerCategoriasUnicas();
+    
+    model.addAttribute("productos", productos);
+    model.addAttribute("stockTotales", stockTotales);
+    model.addAttribute("categorias", categorias);
+    model.addAttribute("categoriaSeleccionada", categoria);
+    model.addAttribute("stockSeleccionado", stock);
+    
+    return "admin/productos";
+}
+
+private List<Producto> filtrarPorStock(List<Producto> productos, Map<Long, Integer> stockTotales, String filtroStock) {
+    return productos.stream()
+            .filter(producto -> {
+                int stockTotal = stockTotales.get(producto.getId());
+                return switch (filtroStock.toLowerCase()) {
+                    case "con-stock" -> stockTotal > 0;
+                    case "sin-stock" -> stockTotal == 0;
+                    case "stock-bajo" -> stockTotal > 0 && stockTotal <= 10; // Stock bajo: 10 o menos unidades
+                    case "stock-alto" -> stockTotal > 10; // Stock alto: más de 10 unidades
+                    default -> true; // "todos" o cualquier otro valor
+                };
+            })
+            .collect(Collectors.toList());
+}
 
     @GetMapping("/productos/nuevo")
     public String mostrarFormularioProducto(Model model) {
@@ -54,33 +94,63 @@ public class AdminController {
     }
 
     @PostMapping("/productos")
-    public String guardarProducto(
-            @RequestParam String nombre,
-            @RequestParam String descripcion,
-            @RequestParam BigDecimal precio,
-            @RequestParam String categoria,
-            @RequestParam String imagenUrl,
-            @RequestParam List<String> tallas,
-            @RequestParam List<Integer> stocks) {
+public String guardarProducto(
+        @RequestParam(required = false) Long id, // ✅ Agrega este parámetro
+        @RequestParam String nombre,
+        @RequestParam String descripcion,
+        @RequestParam BigDecimal precio,
+        @RequestParam String categoria,
+        @RequestParam String imagenUrl,
+        @RequestParam List<String> tallas,
+        @RequestParam List<Integer> stocks,
+        RedirectAttributes redirectAttributes) {
+    
+    try {
+        Producto producto;
         
-        Producto producto = new Producto();
-        producto.setNombre(nombre);
-        producto.setDescripcion(descripcion);
-        producto.setPrecio(precio);
-        producto.setCategoria(categoria);
-        producto.setImagenUrl(imagenUrl);
+        if (id != null) {
+            // ✅ EDITAR producto existente
+            producto = productoService.obtenerPorId(id)
+                    .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+            
+            // Actualizar propiedades
+            producto.setNombre(nombre);
+            producto.setDescripcion(descripcion);
+            producto.setPrecio(precio);
+            producto.setCategoria(categoria);
+            producto.setImagenUrl(imagenUrl);
+            
+            // Limpiar tallas existentes y agregar las nuevas
+            producto.getTallas().clear();
+            
+        } else {
+            // ✅ CREAR nuevo producto
+            producto = new Producto();
+            producto.setNombre(nombre);
+            producto.setDescripcion(descripcion);
+            producto.setPrecio(precio);
+            producto.setCategoria(categoria);
+            producto.setImagenUrl(imagenUrl);
+        }
         
-        // Agregar tallas
+        // Agregar tallas (tanto para crear como editar)
         for (int i = 0; i < tallas.size(); i++) {
-            if (stocks.get(i) > 0) { // Solo agregar tallas con stock > 0
+            if (stocks.get(i) > 0) {
                 producto.agregarTalla(tallas.get(i), stocks.get(i));
             }
         }
         
         productoService.guardar(producto);
-        return "redirect:/admin/productos?success=Producto creado correctamente";
+        
+        String mensaje = (id != null) ? "Producto actualizado correctamente" : "Producto creado correctamente";
+        redirectAttributes.addFlashAttribute("success", mensaje);
+        
+    } catch (Exception e) {
+        redirectAttributes.addFlashAttribute("error", "Error al guardar producto: " + e.getMessage());
     }
-
+    
+    return "redirect:/admin/productos";
+}
     @GetMapping("/productos/editar/{id}")
     public String editarProducto(@PathVariable Long id, Model model) {
         Producto producto = productoService.obtenerPorId(id)
@@ -92,23 +162,25 @@ public class AdminController {
         return "admin/form-producto";
     }
 
-    @GetMapping("/productos/acabar-stock/{id}")
-    public String acabarStock(@PathVariable Long id) {
-        if (productoService.existeProducto(id)) {
-            Producto producto = productoService.obtenerPorId(id)
-                    .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
-            
-            // Poner todas las tallas a stock 0
-            for (ProductoTalla talla : producto.getTallas()) {
-                talla.setStock(0);
-            }
-            
-            productoService.guardar(producto);
-            return "redirect:/admin/productos?success=Stock del producto actualizado a 0";
-        } else {
-            return "redirect:/admin/productos?error=Producto no encontrado";
+        @GetMapping("/productos/stock-cero/{id}")
+    public String stockCero(@PathVariable Long id) {
+        try {
+            productoService.acabarStockProducto(id);
+            return "redirect:/admin/productos?success=Todo el stock puesto a 0 correctamente";
+        } catch (Exception e) {
+            return "redirect:/admin/productos?error=Error: " + e.getMessage();
         }
     }
+
+    @GetMapping("/productos/acabar-stock/{id}")
+        public String acabarStock(@PathVariable Long id) {
+            try {
+                productoService.acabarStockProducto(id);
+                return "redirect:/admin/productos?success=Stock del producto actualizado a 0";
+            } catch (Exception e) {
+                return "redirect:/admin/productos?error=Error al actualizar stock: " + e.getMessage();
+            }
+        }
     
     private List<String> obtenerCategorias() {
         return List.of("Camisetas", "Pantalones", "Vestidos", "Chaquetas", "Zapatos", "Accesorios");

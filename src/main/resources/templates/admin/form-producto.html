@@ -30,7 +30,12 @@
         
         
         <form th:action="@{/admin/productos}" method="post" id="productoForm">
-            
+            <!-- ✅ Campo oculto para el ID cuando se edita -->
+                <input th:if="${producto.id != null}" 
+                    type="hidden" 
+                    name="id" 
+                    th:value="${producto.id}">
+        
             <!-- Información básica del producto -->
             <div class="card">
                 <div class="card-header">
@@ -113,71 +118,96 @@
             </div>
             
             <!-- Sección de Tallas y Stock -->
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">📏 Tallas y Stock</h5>
-                    <small class="text-muted">Selecciona las tallas disponibles y su stock</small>
+            <!-- Sección de Tallas y Stock - VERSIÓN MEJORADA -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">📏 Tallas y Stock</h5>
+        <small class="text-muted">Selecciona las tallas disponibles y su stock</small>
+    </div>
+    <div class="card-body">
+        <div id="tallas-container">
+            <div class="row mb-2">
+                <div class="col-md-6">
+                    <label class="form-label">Talla: XS</label>
+                    <input type="hidden" name="tallas" value="XS">
                 </div>
-                <div class="card-body">
-                    <div id="tallas-container">
-                        <div class="row mb-2">
-                            <div class="col-md-6">
-                                <label class="form-label">Talla: XS</label>
-                                <input type="hidden" name="tallas" value="XS">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Stock</label>
-                                <input type="number" class="form-control" name="stocks" value="0" min="0" 
-                                       placeholder="Cantidad en stock">
-                            </div>
-                        </div>
-                        <div class="row mb-2">
-                            <div class="col-md-6">
-                                <label class="form-label">Talla: S</label>
-                                <input type="hidden" name="tallas" value="S">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Stock</label>
-                                <input type="number" class="form-control" name="stocks" value="0" min="0" 
-                                       placeholder="Cantidad en stock">
-                            </div>
-                        </div>
-                        <div class="row mb-2">
-                            <div class="col-md-6">
-                                <label class="form-label">Talla: M</label>
-                                <input type="hidden" name="tallas" value="M">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Stock</label>
-                                <input type="number" class="form-control" name="stocks" value="0" min="0" 
-                                       placeholder="Cantidad en stock">
-                            </div>
-                        </div>
-                        <div class="row mb-2">
-                            <div class="col-md-6">
-                                <label class="form-label">Talla: L</label>
-                                <input type="hidden" name="tallas" value="L">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Stock</label>
-                                <input type="number" class="form-control" name="stocks" value="0" min="0" 
-                                       placeholder="Cantidad en stock">
-                            </div>
-                        </div>
-                        <div class="row mb-2">
-                            <div class="col-md-6">
-                                <label class="form-label">Talla: XL</label>
-                                <input type="hidden" name="tallas" value="XL">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">Stock</label>
-                                <input type="number" class="form-control" name="stocks" value="0" min="0" 
-                                       placeholder="Cantidad en stock">
-                            </div>
-                        </div>
-                    </div>
+                <div class="col-md-6">
+                    <label class="form-label">Stock</label>
+                    <input type="number" class="form-control" name="stocks" 
+                           th:value="${#lists.contains(producto.tallas.![talla], 'XS')} ? 
+                                   ${producto.tallas.?[talla == 'XS'].![stock][0]} : 0" 
+                           min="0" placeholder="Cantidad en stock">
                 </div>
             </div>
+            <div class="row mb-2">
+                <div class="col-md-6">
+                    <label class="form-label">Talla: S</label>
+                    <input type="hidden" name="tallas" value="S">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Stock</label>
+                    <input type="number" class="form-control" name="stocks" 
+                           th:value="${#lists.contains(producto.tallas.![talla], 'S')} ? 
+                                   ${producto.tallas.?[talla == 'S'].![stock][0]} : 0" 
+                           min="0" placeholder="Cantidad en stock">
+                </div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-md-6">
+                    <label class="form-label">Talla: M</label>
+                    <input type="hidden" name="tallas" value="M">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Stock</label>
+                    <input type="number" class="form-control" name="stocks" 
+                           th:value="${#lists.contains(producto.tallas.![talla], 'M')} ? 
+                                   ${producto.tallas.?[talla == 'M'].![stock][0]} : 0" 
+                           min="0" placeholder="Cantidad en stock">
+                </div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-md-6">
+                    <label class="form-label">Talla: L</label>
+                    <input type="hidden" name="tallas" value="L">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Stock</label>
+                    <input type="number" class="form-control" name="stocks" 
+                           th:value="${#lists.contains(producto.tallas.![talla], 'L')} ? 
+                                   ${producto.tallas.?[talla == 'L'].![stock][0]} : 0" 
+                           min="0" placeholder="Cantidad en stock">
+                </div>
+            </div>
+            <div class="row mb-2">
+                <div class="col-md-6">
+                    <label class="form-label">Talla: XL</label>
+                    <input type="hidden" name="tallas" value="XL">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Stock</label>
+                    <input type="number" class="form-control" name="stocks" 
+                           th:value="${#lists.contains(producto.tallas.![talla], 'XL')} ? 
+                                   ${producto.tallas.?[talla == 'XL'].![stock][0]} : 0" 
+                           min="0" placeholder="Cantidad en stock">
+                </div>
+            </div>
+            <!-- Agrega más tallas según necesites -->
+            <div class="row mb-2">
+                <div class="col-md-6">
+                    <label class="form-label">Talla: XXL</label>
+                    <input type="hidden" name="tallas" value="XXL">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Stock</label>
+                    <input type="number" class="form-control" name="stocks" 
+                           th:value="${#lists.contains(producto.tallas.![talla], 'XXL')} ? 
+                                   ${producto.tallas.?[talla == 'XXL'].![stock][0]} : 0" 
+                           min="0" placeholder="Cantidad en stock">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
             
             <div class="d-flex gap-2 mt-4">
                 <button type="submit" class="btn btn-primary" id="submitBtn">

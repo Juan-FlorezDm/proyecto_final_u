@@ -83,4 +83,30 @@ public class ProductoService {
     public List<String> obtenerTallasDisponibles() {
         return List.of("XS", "S", "M", "L", "XL", "XXL", "28", "30", "32", "34", "36", "38", "40", "42", "44", "Única");
     }
+
+     @Transactional
+    public void acabarStockProducto(Long productoId) {
+        Producto producto = productoRepository.findById(productoId)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+        
+        // Poner todas las tallas a stock 0 y guardar cada una
+        for (ProductoTalla talla : producto.getTallas()) {
+            talla.setStock(0);
+            productoTallaRepository.save(talla); // ✅ Esto SÍ guarda en la BD
+        }
+    }
+
+    @Transactional
+    public void actualizarStockTalla(Long productoId, String tallaNombre, Integer nuevoStock) {
+        Producto producto = productoRepository.findById(productoId)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+        
+        ProductoTalla talla = producto.getTallas().stream()
+                .filter(t -> t.getTalla().equals(tallaNombre))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Talla no encontrada"));
+        
+        talla.setStock(nuevoStock);
+        productoTallaRepository.save(talla); // ✅ Guarda la talla individualmente
+    }
 }
