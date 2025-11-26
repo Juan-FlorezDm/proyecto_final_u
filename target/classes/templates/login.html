@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Tienda de Ropa</title>
+    <link th:href="@{/css/index.css}" rel="stylesheet">
+    <link rel="stylesheet"th:href="@{/css/navbar.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a class="nav-link" th:href="@{/login}">Iniciar Sesión</a>    
+            <a class="nav-link" th:href="@{/registro}">Registrarse</a>
+        </div>
+    </nav>
+    <div class="container-mt-5">
+        <div class="row-justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="text-center">Bienvenido de Nuevo</h4>
+                    </div>
+                    <div class="card-body">
+                        <!-- Alertas -->
+                        <div th:if="${param.error}" class="alert alert-danger">
+                            Usuario o contraseña incorrectos
+                        </div>
+                        <div th:if="${param.logout}" class="alert alert-success">
+                            Has cerrado sesión exitosamente
+                        </div>
+                        <div th:if="${param.registroExitoso}" class="alert alert-success">
+                            ¡Registro exitoso! Por favor inicia sesión.
+                        </div>
+                        
+                        <!-- Formulario -->
+                        <form th:action="@{/login}" method="post">
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="username" name="username" 
+                                       placeholder="tu@email.com" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Contraseña</label>
+                                <input type="password" class="form-control" id="password" name="password" 
+                                       placeholder="••••••••" required>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100">
+                                Iniciar Sesión
+                            </button>
+                        </form>
+                        
+                        <!-- Enlace de registro -->
+                        <div class="text-center mt-3">
+                            <p>¿No tienes cuenta? <a th:href="@{/registro}">Crear una cuenta</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

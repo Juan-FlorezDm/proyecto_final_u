@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${producto.id != null} ? 'Editar Producto' : 'Nuevo Producto'">Producto</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link th:href="@{/css/admin-producto-form.css}" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Partículas de fondo -->
+    <div class="bg-particles" id="particles"></div>
+
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/}">Tienda de Ropa - Admin</a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" th:href="@{/admin/dashboard}">Dashboard</a>
+                <a class="nav-link active" th:href="@{/admin/productos}">Productos</a>
+                <a class="nav-link" th:href="@{/logout}">🚪 Cerrar Sesión</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h2 th:text="${producto.id != null} ? '✏️ Editar Producto' : '➕ Nuevo Producto'">
+            Producto
+        </h2>
+        
+        
+        <form th:action="@{/admin/productos}" method="post" id="productoForm">
+            
+            <!-- Información básica del producto -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">📋 Información Básica</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="nombre" class="form-label">
+                                    📛 Nombre del Producto
+                                </label>
+                                <input type="text" class="form-control" id="nombre" name="nombre" 
+                                       th:value="${producto.nombre}" required
+                                       placeholder="Ej: Camiseta Básica">
+                                <div class="form-text">
+                                    Solo letras, máximo 10 letras por palabra
+                                </div>
+                                <div class="validacion-mensaje" id="nombreError"></div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="precio" class="form-label">
+                                    💰 Precio
+                                </label>
+                                <input type="number" step="0.01" class="form-control" id="precio" name="precio" 
+                                       th:value="${producto.precio}" required
+                                       placeholder="0.00" min="0" max="1000000">
+                                <div class="form-text">
+                                    Máximo $1,000,000. No puede empezar con 0
+                                </div>
+                                <div class="validacion-mensaje" id="precioError"></div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="categoria" class="form-label">
+                                    🏷️ Categoría
+                                </label>
+                                <select class="form-select" id="categoria" name="categoria" required>
+                                    <option value="">Seleccionar categoría</option>
+                                    <option th:each="categoria : ${categorias}" 
+                                            th:value="${categoria}"
+                                            th:text="${categoria}"
+                                            th:selected="${producto.categoria == categoria}">
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="descripcion" class="form-label">
+                                    📝 Descripción
+                                </label>
+                                <textarea class="form-control" id="descripcion" name="descripcion" 
+                                          rows="5" required
+                                          th:text="${producto.descripcion}"
+                                          placeholder="Describe el producto con al menos 3 palabras..."></textarea>
+                                <div class="form-text">
+                                    Mínimo 3 palabras. Evita letras repetidas consecutivas
+                                </div>
+                                <div class="validacion-mensaje" id="descripcionError"></div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="imagenUrl" class="form-label">
+                                    🖼️ URL de la Imagen
+                                </label>
+                                <input type="url" class="form-control" id="imagenUrl" name="imagenUrl" 
+                                       th:value="${producto.imagenUrl}" 
+                                       placeholder="https://ejemplo.com/imagen.jpg">
+                                <div class="form-text">
+                                    Opcional. Debe ser una imagen válida y accesible
+                                </div>
+                                <div class="validacion-mensaje" id="imagenUrlError"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sección de Tallas y Stock -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">📏 Tallas y Stock</h5>
+                    <small class="text-muted">Selecciona las tallas disponibles y su stock</small>
+                </div>
+                <div class="card-body">
+                    <div id="tallas-container">
+                        <div class="row mb-2">
+                            <div class="col-md-6">
+                                <label class="form-label">Talla: XS</label>
+                                <input type="hidden" name="tallas" value="XS">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Stock</label>
+                                <input type="number" class="form-control" name="stocks" value="0" min="0" 
+                                       placeholder="Cantidad en stock">
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-md-6">
+                                <label class="form-label">Talla: S</label>
+                                <input type="hidden" name="tallas" value="S">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Stock</label>
+                                <input type="number" class="form-control" name="stocks" value="0" min="0" 
+                                       placeholder="Cantidad en stock">
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-md-6">
+                                <label class="form-label">Talla: M</label>
+                                <input type="hidden" name="tallas" value="M">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Stock</label>
+                                <input type="number" class="form-control" name="stocks" value="0" min="0" 
+                                       placeholder="Cantidad en stock">
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-md-6">
+                                <label class="form-label">Talla: L</label>
+                                <input type="hidden" name="tallas" value="L">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Stock</label>
+                                <input type="number" class="form-control" name="stocks" value="0" min="0" 
+                                       placeholder="Cantidad en stock">
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-md-6">
+                                <label class="form-label">Talla: XL</label>
+                                <input type="hidden" name="tallas" value="XL">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Stock</label>
+                                <input type="number" class="form-control" name="stocks" value="0" min="0" 
+                                       placeholder="Cantidad en stock">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary" id="submitBtn">
+                    <span th:text="${producto.id != null} ? '💾 Actualizar' : '➕ Crear'">
+                        Guardar
+                    </span>
+                </button>
+                <a th:href="@{/admin/productos}" class="btn btn-secondary">↩️ Cancelar</a>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+    
+// VALIDACIONES EN TIEMPO REAL MEJORADAS
+function inicializarValidaciones() {
+    const nombreInput = document.getElementById('nombre');
+    const precioInput = document.getElementById('precio');
+    const descripcionInput = document.getElementById('descripcion');
+    const imagenUrlInput = document.getElementById('imagenUrl');
+    const formulario = document.getElementById('productoForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // Elementos para mensajes de error
+    const nombreError = document.getElementById('nombreError');
+    const precioError = document.getElementById('precioError');
+    const descripcionError = document.getElementById('descripcionError');
+    const imagenUrlError = document.getElementById('imagenUrlError');
+
+    // ===== VALIDACIONES ROBUSTAS COMO EN EL REGISTRO =====
+
+    // Validación del nombre del producto (similar a nombres/apellidos)
+    // Validación del nombre del producto (MEJORADA)
+function validarNombre(nombre) {
+    // Limpiar espacios extras y normalizar
+    nombre = nombre.trim().replace(/\s+/g, ' ');
+    
+    // Verificar que no esté vacío
+    if (nombre === '') {
+        return { valid: false, message: "❌ El nombre del producto es requerido" };
+    }
+    
+    // Verificar que solo contenga letras y espacios
+    if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(nombre)) {
+        return { valid: false, message: "❌ Solo se permiten letras y espacios, sin números ni caracteres especiales" };
+    }
+    
+    // Verificar número de palabras (1-3)
+    const palabras = nombre.split(/\s+/).filter(palabra => palabra.length > 0);
+    if (palabras.length < 1 || palabras.length > 3) {
+        return { valid: false, message: "❌ El nombre debe tener entre 1 y 3 palabras" };
+    }
+    
+    // Verificar que las palabras no sean iguales
+    if (palabras.length > 1) {
+        for (let i = 0; i < palabras.length; i++) {
+            for (let j = i + 1; j < palabras.length; j++) {
+                if (palabras[i].toLowerCase() === palabras[j].toLowerCase()) {
+                    return { valid: false, message: "❌ Las palabras del nombre no pueden ser iguales" };
+                }
+            }
+        }
+    }
+    
+    // Verificar que no tenga más de 3 letras iguales seguidas
+    for (let palabra of palabras) {
+        for (let i = 0; i < palabra.length - 3; i++) {
+            if (palabra[i] === palabra[i+1] && palabra[i] === palabra[i+2] && palabra[i] === palabra[i+3]) {
+                return { valid: false, message: "❌ No puede tener más de 3 letras iguales seguidas" };
+            }
+        }
+    }
+    
+    // Verificar longitud mínima de cada palabra (mínimo 2 caracteres)
+    for (let palabra of palabras) {
+        if (palabra.length < 2) {
+            return { valid: false, message: "❌ Cada palabra debe tener al menos 2 letras" };
+        }
+        if (palabra.length > 15) {
+            return { valid: false, message: "❌ Cada palabra debe tener máximo 15 letras" };
+        }
+    }
+    
+    // Verificar que tenga al menos una vocal en cada palabra
+    for (let palabra of palabras) {
+        if (!/[aeiouáéíóúAEIOUÁÉÍÓÚ]/.test(palabra)) {
+            return { valid: false, message: "❌ Cada palabra debe contener al menos una vocal" };
+        }
+    }
+    
+    // Verificar proporción vocal/consonante MÁS ESTRICTA
+    for (let palabra of palabras) {
+        const vocales = (palabra.match(/[aeiouáéíóúAEIOUÁÉÍÓÚ]/g) || []).length;
+        const consonantes = (palabra.match(/[bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZñÑ]/g) || []).length;
+        const totalLetras = palabra.length;
+        
+        // Para palabras de 3+ letras, debe tener al menos 1 vocal y 1 consonante
+        if (totalLetras >= 3) {
+            if (vocales === 0 || consonantes === 0) {
+                return { valid: false, message: "❌ El nombre debe tener una combinación válida de vocales y consonantes" };
+            }
+            
+            // Proporción más estricta: no más del 80% del mismo tipo
+            if (vocales / totalLetras > 0.8 || consonantes / totalLetras > 0.8) {
+                return { valid: false, message: "❌ El nombre debe tener una combinación balanceada de vocales y consonantes" };
+            }
+        }
+        
+        // Para palabras de 4+ letras, proporción aún más estricta
+        if (totalLetras >= 4) {
+            if (vocales / totalLetras > 0.75 || consonantes / totalLetras > 0.75) {
+                return { valid: false, message: "❌ El nombre debe tener una distribución más balanceada de letras" };
+            }
+        }
+    }
+    
+    // DETECCIÓN MEJORADA DE PATRONES DE TECLADO
+    const patronesTeclado = [
+        // Filas del teclado QWERTY
+        /^[qwertyuiop]+$/i, /^[asdfghjkl]+$/i, /^[zxcvbnm]+$/i,
+        // Combinaciones comunes sin sentido
+        /^[qwer]+$/i, /^[asdf]+$/i, /^[zxcv]+$/i, /^[uiop]+$/i,
+        /^[jklñ]+$/i, /^[mnb]+$/i, /^[poiu]+$/i, /^[lkj]+$/i,
+        /^[mnb]+$/i, /^[vczx]+$/i, /^[dfgh]+$/i, /^[rtyu]+$/i,
+        // Patrones específicos como "dbhajs"
+        /^[dbha]+$/i, /^[hjks]+$/i, /^[asdh]+$/i, /^[fghj]+$/i,
+        /^[jklh]+$/i, /^[sdfg]+$/i, /^[wert]+$/i, /^[xcvb]+$/i,
+        // Secuencias adyacentes en teclado
+        /^[qaz]+$/i, /^[wsx]+$/i, /^[edc]+$/i, /^[rfv]+$/i,
+        /^[tgb]+$/i, /^[yhn]+$/i, /^[ujm]+$/i, /^[ik]+$/i,
+        /^[ol]+$/i, /^[pñ]+$/i
+    ];
+    
+    for (let palabra of palabras) {
+        for (let patron of patronesTeclado) {
+            if (patron.test(palabra.toLowerCase())) {
+                return { valid: false, message: "❌ El nombre contiene patrones de teclado no válidos" };
+            }
+        }
+        
+        // DETECCIÓN POR POSICIÓN EN TECLADO - MÁS INTELIGENTE
+        const tecladoQWERTY = [
+            '1234567890',
+            'qwertyuiop',
+            'asdfghjklñ',
+            'zxcvbnm'
+        ];
+        
+        // Verificar si las letras son adyacentes en el teclado
+        if (palabra.length >= 3) {
+            let esSecuenciaTeclado = true;
+            const palabraLower = palabra.toLowerCase();
+            
+            // Verificar si todas las letras están en la misma fila
+            for (let fila of tecladoQWERTY) {
+                if (palabraLower.split('').every(letra => fila.includes(letra))) {
+                    // Verificar si están en orden consecutivo o muy cercanas
+                    const indices = palabraLower.split('').map(letra => fila.indexOf(letra));
+                    let diferenciasConsecutivas = 0;
+                    
+                    for (let i = 1; i < indices.length; i++) {
+                        const diff = Math.abs(indices[i] - indices[i-1]);
+                        if (diff <= 2) { // Letras muy cercanas en el teclado
+                            diferenciasConsecutivas++;
+                        }
+                    }
+                    
+                    if (diferenciasConsecutivas >= palabra.length - 2) {
+                        return { valid: false, message: "❌ El nombre parece un patrón de teclado sin sentido" };
+                    }
+                }
+            }
+        }
+    }
+    
+    // COMBINACIONES ESPECÍFICAS BLOQUEADAS - ACTUALIZADA
+    const combinacionesInvalidas = [
+        'aa aa', 'aaa aaa', 'bb bb', 'cc cc', 'dd dd', 'ee ee', 'ff ff',
+        'as ass', 'ab abc', 'test test', 'demo demo', 'qwe qwer', 'asd asdf',
+        'zxc zxcv', 'jkl jklñ', 'poi poiu', 'lkj lkjh', 'mnb mnbv',
+        'aaaa', 'bbbb', 'cccc', 'dddd', 'eeee', 'ffff', 'gggg', 'hhhh',
+        'asdf', 'qwer', 'zxcv', 'jklñ', 'poiu', 'lkjh', 'mnbv', 'yuio',
+        'uiop', 'hjkl', 'fghj', 'dfgh', 'cvbn', 'vbnm', 'rtyu', 'tyui',
+        // NUEVAS COMBINACIONES BLOQUEADAS
+        'dbhajs', 'sdfghj', 'qazwsx', 'edcrfv', 'tgbnhy', 'yhnujm',
+        'ikolpñ', 'wsxedc', 'rfvtgb', 'yhnujm', 'qscwed', 'azsxd',
+        'qwed', 'asdf', 'zxcv', 'qaz', 'wsx', 'edc', 'rfv', 'tgb',
+        'yhn', 'ujm', 'ik', 'ol', 'pñ'
+    ];
+    
+    if (combinacionesInvalidas.includes(nombre.toLowerCase())) {
+        return { valid: false, message: "❌ El nombre no es válido (patrón bloqueado)" };
+    }
+    
+    // VERIFICACIÓN FINAL: PALABRAS CON SENTIDO
+    // Lista de palabras comunes en español para productos de ropa
+    const palabrasValidasComunes = [
+        'camiseta', 'pantalon', 'jeans', 'short', 'falda', 'vestido', 'blusa',
+        'chaqueta', 'sudadera', 'hoodie', 'sueter', 'abrigo', 'impermeable',
+        'zapatos', 'tenis', 'sandalias', 'botas', 'tacones', 'deportivos',
+        'gorra', 'sombrero', 'bufanda', 'guantes', 'calcetines', 'medias',
+        'ropa', 'moda', 'estilo', 'basico', 'elegante', 'deportivo', 'casual',
+        'formal', 'urbano', 'clasico', 'moderno', 'color', 'talla', 'marca'
+    ];
+    
+    let palabrasConSentido = 0;
+    for (let palabra of palabras) {
+        // Verificar si la palabra se parece a palabras válidas comunes
+        const palabraLower = palabra.toLowerCase();
+        const esPalabraValida = palabrasValidasComunes.some(palabraValida => 
+            palabraValida.includes(palabraLower) || palabraLower.includes(palabraValida) ||
+            calcularSimilitud(palabraLower, palabraValida) > 0.6
+        );
+        
+        if (esPalabraValida || palabra.length <= 3) {
+            palabrasConSentido++;
+        }
+    }
+    
+    // Si menos del 50% de las palabras tienen sentido, rechazar
+    if (palabrasConSentido < palabras.length * 0.5) {
+        return { valid: false, message: "❌ El nombre debe contener palabras con sentido para productos de ropa" };
+    }
+    
+    return { valid: true, message: "✅ Nombre válido" };
+}
+
+// Función auxiliar para calcular similitud entre palabras (aproximada)
+function calcularSimilitud(palabra1, palabra2) {
+    const longer = palabra1.length > palabra2.length ? palabra1 : palabra2;
+    const shorter = palabra1.length > palabra2.length ? palabra2 : palabra1;
+    
+    if (longer.length === 0) return 1.0;
+    
+    return (longer.length - calcularDistancia(longer, shorter)) / parseFloat(longer.length);
+}
+
+// Distancia de Levenshtein simplificada
+function calcularDistancia(s1, s2) {
+    if (s1 === s2) return 0;
+    if (s1.length === 0) return s2.length;
+    if (s2.length === 0) return s1.length;
+
+    const matrix = [];
+    for (let i = 0; i <= s2.length; i++) matrix[i] = [i];
+    for (let j = 0; j <= s1.length; j++) matrix[0][j] = j;
+
+    for (let i = 1; i <= s2.length; i++) {
+        for (let j = 1; j <= s1.length; j++) {
+            if (s2.charAt(i-1) === s1.charAt(j-1)) {
+                matrix[i][j] = matrix[i-1][j-1];
+            } else {
+                matrix[i][j] = Math.min(
+                    matrix[i-1][j-1] + 1,
+                    matrix[i][j-1] + 1,
+                    matrix[i-1][j] + 1
+                );
+            }
+        }
+    }
+
+    return matrix[s2.length][s1.length];
+}
+
+    // Validación del precio (mejorada)
+    function validarPrecio(precio) {
+        precio = precio.toString().trim();
+        
+        if (precio === '') {
+            return { valid: false, message: "❌ El precio es requerido" };
+        }
+
+        // Verificar que sea un número válido
+        if (isNaN(parseFloat(precio)) || !isFinite(precio)) {
+            return { valid: false, message: "❌ El precio debe ser un número válido" };
+        }
+
+        const numero = parseFloat(precio);
+        
+        // Verificar que no empiece con 0 (excepto 0.xx)
+        if (precio.startsWith('0') && !precio.startsWith('0.')) {
+            return { valid: false, message: "❌ El precio no puede empezar por 0" };
+        }
+        
+        // Verificar que no sea negativo
+        if (numero < 0) {
+            return { valid: false, message: "❌ El precio no puede ser negativo" };
+        }
+        
+        // Verificar máximo
+        if (numero > 1000000) {
+            return { valid: false, message: "❌ El precio no puede ser mayor a $1,000,000" };
+        }
+        
+        // Verificar formato decimal (máximo 2 decimales)
+        if (!/^\d+(\.\d{1,2})?$/.test(precio)) {
+            return { valid: false, message: "❌ El precio debe tener máximo 2 decimales" };
+        }
+        
+        // Verificar que tenga al menos 1 peso
+        if (numero < 1) {
+            return { valid: false, message: "❌ El precio debe ser al menos $1" };
+        }
+
+        return { valid: true, message: "✅ Precio válido" };
+    }
+
+    // Validación de la descripción (robusta)
+    function validarDescripcion(descripcion) {
+        descripcion = descripcion.trim();
+        
+        if (descripcion === '') {
+            return { valid: false, message: "❌ La descripción es requerida" };
+        }
+
+        const palabras = descripcion.split(/\s+/).filter(palabra => palabra.length > 0);
+        
+        // Verificar número mínimo de palabras
+        if (palabras.length < 3) {
+            return { valid: false, message: "❌ La descripción debe tener al menos 3 palabras" };
+        }
+        
+        // Verificar que no tenga más de 3 letras iguales seguidas
+        for (let palabra of palabras) {
+            for (let i = 0; i < palabra.length - 3; i++) {
+                if (palabra[i] === palabra[i+1] && palabra[i] === palabra[i+2] && palabra[i] === palabra[i+3]) {
+                    return { valid: false, message: "❌ No puede tener más de 3 letras iguales seguidas" };
+                }
+            }
+        }
+        
+        // Verificar longitud mínima de palabras
+        let palabrasDemasiadoCortas = 0;
+        for (let palabra of palabras) {
+            if (palabra.length === 1) palabrasDemasiadoCortas++;
+            if (palabra.length > 20) {
+                return { valid: false, message: "❌ Las palabras no pueden tener más de 20 letras" };
+            }
+        }
+        
+        // Limitar palabras de 1 letra
+        if (palabrasDemasiadoCortas > palabras.length * 0.3) {
+            return { valid: false, message: "❌ Demasiadas palabras de 1 letra" };
+        }
+        
+        // Verificar que tenga palabras con sentido (mix de vocales/consonantes)
+        let palabrasSinSentido = 0;
+        for (let palabra of palabras) {
+            const vocales = (palabra.match(/[aeiouáéíóúAEIOUÁÉÍÓÚ]/g) || []).length;
+            const consonantes = (palabra.match(/[bcdfghjklmnpqrstvwxyzBCDFGHJKLMNPQRSTVWXYZñÑ]/g) || []).length;
+            
+            if (palabra.length >= 3 && (vocales === 0 || consonantes === 0)) {
+                palabrasSinSentido++;
+            }
+        }
+        
+        if (palabrasSinSentido > palabras.length * 0.4) {
+            return { valid: false, message: "❌ La descripción debe tener palabras con sentido" };
+        }
+        
+        // Verificar patrones de teclado
+        const patronesTeclado = [
+            /^[asdf]+$/i, /^[qwer]+$/i, /^[zxcv]+$/i, /^[jklñ]+$/i,
+            /^[poiu]+$/i, /^[lkjh]+$/i, /^[mnbv]+$/i
+        ];
+        
+        for (let palabra of palabras) {
+            for (let patron of patronesTeclado) {
+                if (patron.test(palabra.toLowerCase())) {
+                    return { valid: false, message: "❌ La descripción contiene patrones de teclado no válidos" };
+                }
+            }
+        }
+
+        return { valid: true, message: "✅ Descripción válida" };
+    }
+
+    // Validación de URL de imagen (mejorada)
+    function validarImagenUrl(url) {
+        url = url.trim();
+        
+        if (url === '') {
+            return { valid: true, message: "⚠️ Campo opcional" };
+        }
+
+        // Verificar formato de URL
+        try {
+            new URL(url);
+        } catch {
+            return { valid: false, message: "❌ La URL no tiene un formato válido" };
+        }
+        
+        // Verificar que sea una imagen
+        const extensionesValidas = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg'];
+        const tieneExtensionValida = extensionesValidas.some(ext => 
+            url.toLowerCase().includes(ext)
+        );
+        
+        if (!tieneExtensionValida) {
+            return { valid: false, message: "❌ La URL debe ser una imagen (png, jpg, jpeg, gif, webp, svg)" };
+        }
+        
+        return { valid: true, message: "✅ URL válida" };
+    }
+
+    // Función para verificar si una imagen existe
+    function verificarImagenExiste(url) {
+        return new Promise((resolve) => {
+            mostrarValidacion(imagenUrlError, "🔄 Verificando imagen...");
+            
+            const img = new Image();
+            img.onload = function() {
+                mostrarValidacion(imagenUrlError, "✅ Imagen encontrada y accesible");
+                resolve(true);
+            };
+            img.onerror = function() {
+                mostrarValidacion(imagenUrlError, "❌ La imagen no existe o no se puede cargar");
+                resolve(false);
+            };
+            img.src = url;
+            
+            // Timeout después de 5 segundos
+            setTimeout(() => {
+                if (imagenUrlError.textContent === '🔄 Verificando imagen...') {
+                    mostrarValidacion(imagenUrlError, "⚠️ No se pudo verificar la imagen (timeout)");
+                    resolve(false);
+                }
+            }, 5000);
+        });
+    }
+
+    // Función para mostrar mensaje de validación
+    function mostrarValidacion(elementoError, mensaje) {
+        elementoError.textContent = mensaje;
+        elementoError.className = 'validacion-mensaje ';
+        
+        if (mensaje.startsWith('✅')) {
+            elementoError.classList.add('valido');
+        } else if (mensaje.startsWith('❌')) {
+            elementoError.classList.add('invalido');
+        } else if (mensaje.startsWith('⚠️')) {
+            elementoError.classList.add('advertencia');
+        } else if (mensaje.startsWith('🔄')) {
+            elementoError.classList.add('cargando');
+        }
+    }
+
+    // Función para actualizar estilos del input
+    function updateInputStyle(input, isValid) {
+        if (isValid) {
+            input.style.borderColor = '#06d6a0';
+            input.style.backgroundColor = 'rgba(6, 214, 160, 0.05)';
+        } else {
+            input.style.borderColor = '#ef4444';
+            input.style.backgroundColor = 'rgba(239, 68, 68, 0.05)';
+        }
+    }
+
+    // ===== EVENT LISTENERS MEJORADOS =====
+
+    // Validación en tiempo real para nombre
+    nombreInput.addEventListener('input', function() {
+        const resultado = validarNombre(this.value);
+        mostrarValidacion(nombreError, resultado.message);
+        updateInputStyle(nombreInput, resultado.valid);
+    });
+
+    nombreInput.addEventListener('blur', function() {
+        const resultado = validarNombre(this.value);
+        mostrarValidacion(nombreError, resultado.message);
+        updateInputStyle(nombreInput, resultado.valid);
+    });
+
+    // Validación en tiempo real para precio
+    precioInput.addEventListener('input', function() {
+        const resultado = validarPrecio(this.value);
+        mostrarValidacion(precioError, resultado.message);
+        updateInputStyle(precioInput, resultado.valid);
+    });
+
+    precioInput.addEventListener('blur', function() {
+        const resultado = validarPrecio(this.value);
+        mostrarValidacion(precioError, resultado.message);
+        updateInputStyle(precioInput, resultado.valid);
+    });
+
+    // Validación en tiempo real para descripción
+    descripcionInput.addEventListener('input', function() {
+        const resultado = validarDescripcion(this.value);
+        mostrarValidacion(descripcionError, resultado.message);
+        updateInputStyle(descripcionInput, resultado.valid);
+    });
+
+    descripcionInput.addEventListener('blur', function() {
+        const resultado = validarDescripcion(this.value);
+        mostrarValidacion(descripcionError, resultado.message);
+        updateInputStyle(descripcionInput, resultado.valid);
+    });
+
+    // Validación en tiempo real para URL de imagen
+    imagenUrlInput.addEventListener('input', function() {
+        const resultado = validarImagenUrl(this.value);
+        mostrarValidacion(imagenUrlError, resultado.message);
+        updateInputStyle(imagenUrlInput, resultado.valid);
+    });
+
+    imagenUrlInput.addEventListener('blur', async function() {
+        const resultado = validarImagenUrl(this.value);
+        mostrarValidacion(imagenUrlError, resultado.message);
+        updateInputStyle(imagenUrlInput, resultado.valid);
+        
+        // Si la URL es válida y no está vacía, verificar si la imagen existe
+        if (resultado.valid && this.value.trim()) {
+            await verificarImagenExiste(this.value);
+        }
+    });
+
+    // Prevenir entrada de números y caracteres especiales en nombre
+    nombreInput.addEventListener('keypress', function(e) {
+        const charCode = e.which ? e.which : e.keyCode;
+        const char = String.fromCharCode(charCode);
+        
+        if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]$/.test(char) && charCode > 31) {
+            e.preventDefault();
+            mostrarValidacion(nombreError, '❌ Solo se permiten letras y espacios');
+            updateInputStyle(nombreInput, false);
+            return false;
+        }
+    });
+
+    // Validación de stock (evitar números negativos)
+    const inputsStock = document.querySelectorAll('input[name="stocks"]');
+    inputsStock.forEach(input => {
+        input.addEventListener('input', function() {
+            if (this.value < 0) {
+                this.value = 0;
+            }
+        });
+    });
+
+    // ===== VALIDACIÓN DEL FORMULARIO COMPLETO =====
+
+    formulario.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
+        const nombre = nombreInput.value.trim();
+        const precio = precioInput.value.trim();
+        const descripcion = descripcionInput.value.trim();
+        const imagenUrl = imagenUrlInput.value.trim();
+        
+        let tieneErrores = false;
+
+        
+
+        // Validar precio
+        const validacionPrecio = validarPrecio(precio);
+        if (!validacionPrecio.valid) {
+            mostrarValidacion(precioError, validacionPrecio.message);
+            updateInputStyle(precioInput, false);
+            if (!tieneErrores) precioInput.focus();
+            tieneErrores = true;
+        }
+
+        // Validar descripción
+        const validacionDescripcion = validarDescripcion(descripcion);
+        if (!validacionDescripcion.valid) {
+            mostrarValidacion(descripcionError, validacionDescripcion.message);
+            updateInputStyle(descripcionInput, false);
+            if (!tieneErrores) descripcionInput.focus();
+            tieneErrores = true;
+        }
+
+        // Validar URL de imagen
+        const validacionImagenUrl = validarImagenUrl(imagenUrl);
+        if (!validacionImagenUrl.valid) {
+            mostrarValidacion(imagenUrlError, validacionImagenUrl.message);
+            updateInputStyle(imagenUrlInput, false);
+            if (!tieneErrores) imagenUrlInput.focus();
+            tieneErrores = true;
+        }
+
+        // Si hay URL de imagen válida, verificar que exista
+        if (imagenUrl && validacionImagenUrl.valid) {
+            const imagenExiste = await verificarImagenExiste(imagenUrl);
+            if (!imagenExiste) {
+                tieneErrores = true;
+            }
+        }
+
+        // Verificar que al menos una talla tenga stock
+        const stocks = Array.from(inputsStock).map(input => parseInt(input.value) || 0);
+        const totalStock = stocks.reduce((sum, stock) => sum + stock, 0);
+        
+        if (totalStock === 0) {
+            alert('❌ Debes asignar stock a al menos una talla');
+            inputsStock[0].focus();
+            tieneErrores = true;
+        }
+
+        if (!tieneErrores) {
+            // Si todo está bien, enviar el formulario
+            this.submit();
+        }
+    });
+
+    // Validar todos los campos al cargar la página si hay valores
+    setTimeout(() => {
+        if (nombreInput.value) {
+            const resultado = validarNombre(nombreInput.value);
+            mostrarValidacion(nombreError, resultado.message);
+            updateInputStyle(nombreInput, resultado.valid);
+        }
+        if (precioInput.value) {
+            const resultado = validarPrecio(precioInput.value);
+            mostrarValidacion(precioError, resultado.message);
+            updateInputStyle(precioInput, resultado.valid);
+        }
+        if (descripcionInput.value) {
+            const resultado = validarDescripcion(descripcionInput.value);
+            mostrarValidacion(descripcionError, resultado.message);
+            updateInputStyle(descripcionInput, resultado.valid);
+        }
+        if (imagenUrlInput.value) {
+            const resultado = validarImagenUrl(imagenUrlInput.value);
+            mostrarValidacion(imagenUrlError, resultado.message);
+            updateInputStyle(imagenUrlInput, resultado.valid);
+        }
+    }, 100);
+}
+
+
+document.addEventListener('DOMContentLoaded', function() {
+    const particlesContainer = document.getElementById('particles');
+    const particleCount = 12;
+    
+    for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.classList.add('particle');
+        
+        // Tamaño aleatorio
+        const size = Math.random() * 50 + 15;
+        particle.style.width = `${size}px`;
+        particle.style.height = `${size}px`;
+        
+        // Posición aleatoria
+        particle.style.left = `${Math.random() * 100}vw`;
+        particle.style.top = `${Math.random() * 100}vh`;
+        
+        // Animación con retraso aleatorio
+        particle.style.animationDelay = `${Math.random() * 10}s`;
+        
+        particlesContainer.appendChild(particle);
+    }
+
+    // ✅ ESTA LÍNEA FALTA - INICIALIZAR LAS VALIDACIONES
+    inicializarValidaciones(); // <-- AÑADE ESTA LÍNEA
+});
+    </script>
+</body>
+</html>
