@@ -1,28 +1,34 @@
-### Multi-stage Dockerfile for Spring Boot (Maven) application
-# Stage 1: build the app with Maven
 FROM maven:3.9.4-eclipse-temurin-17 AS builder
+
+# Establecer directorio de trabajo
 WORKDIR /workspace
 
-# Cache dependencies first to speed up rebuilds
-COPY pom.xml ./
-RUN mvn -B -DskipTests dependency:go-offline
+# Copiar el POM primero (para aprovechar cache de Docker)
+COPY pom.xml .
 
-# Copy source and build
+# Descargar dependencias (cache si el POM no cambia)
+RUN mvn dependency:go-offline -B
+
+# Copiar el código fuente
 COPY src ./src
-RUN mvn -B -DskipTests package
 
-# Stage 2: minimal runtime image
-FROM eclipse-temurin:17-jre-jammy
+# Compilar y empaquetar la aplicación
+RUN mvn clean package -DskipTests
+
+# Segunda etapa - Imagen más liviana para producción
+FROM eclipse-temurin:17-jre
+
+# Establecer directorio de trabajo
 WORKDIR /app
 
-# copy fat JAR from the builder stage
+# Copiar el JAR desde la etapa de build
 COPY --from=builder /workspace/target/*.jar app.jar
 
-# Application listens on 8080 by default
+# Exponer el puerto (ajusta si tu app usa otro puerto)
 EXPOSE 8080
 
-# sensible default memory options (easy to override at runtime)
-ENV JAVA_OPTS="-Xms256m -Xmx512m"
+# Variable de entorno para el perfil (opcional)
+ENV SPRING_PROFILES_ACTIVE=prod
 
-# Start the Spring Boot app
-ENTRYPOINT ["sh","-c","java $JAVA_OPTS -jar /app/app.jar"]
+# Comando para ejecutar la aplicación
+ENTRYPOINT ["java", "-jar", "app.jar"]
