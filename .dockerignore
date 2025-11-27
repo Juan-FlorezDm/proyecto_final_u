@@ -1,7 +1,0 @@
-target/
-.mvn/
-.git/
-.idea/
-*.log
-*.iml
-.DS_Store
