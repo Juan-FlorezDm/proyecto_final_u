@@ -1,0 +1,15 @@
+.mvn/
+target/
+.git
+.gitignore
+**/target
+*.log
+.idea
+.classpath
+.project
+.settings
+*.iml
+*.swp
+README.md
+Dockerfile
+**/*.md
