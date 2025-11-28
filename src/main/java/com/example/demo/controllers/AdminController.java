@@ -2,7 +2,11 @@ package com.example.demo.controllers;
 
 import com.example.demo.entidades.Producto;
 import com.example.demo.entidades.ProductoTalla;
+import com.example.demo.entidades.Usuario;
+import com.example.demo.servicios.EmailService;
 import com.example.demo.servicios.ProductoService;
+import com.example.demo.servicios.UsuarioService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -184,5 +188,52 @@ public String guardarProducto(
     
     private List<String> obtenerCategorias() {
         return List.of("Camisetas", "Pantalones", "Vestidos", "Chaquetas", "Zapatos", "Accesorios");
+    }
+
+    @Autowired
+    private UsuarioService usuarioService;
+    @GetMapping("/usuarios")
+    public String gestionUsuarios(Model model) {
+        // Obtener todos los usuarios
+        List<Usuario> usuarios = usuarioService.obtenerTodosLosUsuarios();
+        
+        model.addAttribute("usuarios", usuarios);
+        return "admin/usuarios";
+    }
+    @Autowired
+    private EmailService emailService;
+
+        @PostMapping("/usuarios/solicitar-cambio-password")
+    public String solicitarCambioPassword(
+            @RequestParam Long usuarioId,
+            @RequestParam String usuarioEmail,
+            @RequestParam String usuarioNombre,
+            RedirectAttributes redirectAttributes) {
+        
+        try {
+            // USAR EL SERVICIO REAL DE EMAIL
+            emailService.enviarSolicitudCambioPassword(usuarioNombre, usuarioEmail, usuarioId);
+            
+            // También mostrar en consola para debugging
+            System.out.println("=== EMAIL ENVIADO ===");
+            System.out.println("Para: jnendez38@gmail.com");
+            System.out.println("Usuario: " + usuarioNombre);
+            System.out.println("Email: " + usuarioEmail);
+            System.out.println("ID: " + usuarioId);
+            System.out.println("======================");
+            
+            redirectAttributes.addFlashAttribute("success", 
+                "✅ Solicitud de cambio de contraseña enviada para: " + usuarioNombre);
+            
+        } catch (Exception e) {
+            // Mostrar error detallado en consola
+            System.err.println("❌ ERROR ENVIANDO EMAIL: " + e.getMessage());
+            e.printStackTrace();
+            
+            redirectAttributes.addFlashAttribute("error", 
+                "❌ Error al enviar solicitud: " + e.getMessage());
+        }
+        
+        return "redirect:/admin/usuarios";
     }
 }

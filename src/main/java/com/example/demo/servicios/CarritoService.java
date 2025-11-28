@@ -2,7 +2,6 @@ package com.example.demo.servicios;
 
 import com.example.demo.entidades.*;
 import com.example.demo.repository.CarritoRepository;
-import com.example.demo.repository.ItemCarritoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
