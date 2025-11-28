@@ -5,9 +5,7 @@ import com.example.demo.entidades.DetallePedido;
 import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.*;
 import org.springframework.stereotype.Service;
-
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 
 @Service

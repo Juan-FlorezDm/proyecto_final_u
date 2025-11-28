@@ -25,7 +25,7 @@ public class CarritoController {
         public String verCarrito(Authentication authentication, Model model) {
             Usuario usuario = obtenerUsuarioDesdeAutenticacion(authentication);
             model.addAttribute("carrito", carritoService.obtenerCarritoPorUsuario(usuario));
-            return "cliente/carrito";
+            return "cliente/Carrito";
         }
     
    
@@ -69,7 +69,7 @@ public String eliminarDelCarrito(
         redirectAttributes.addFlashAttribute("error", e.getMessage());
     }
     
-    return "redirect:/cliente/carrito";
+    return "redirect:/cliente/Carrito";
 }
 
 @PostMapping("/actualizar")
@@ -88,7 +88,7 @@ public String actualizarCantidad(
         redirectAttributes.addFlashAttribute("error", e.getMessage());
     }
     
-    return "redirect:/cliente/carrito";
+    return "redirect:/cliente/Carrito";
 }
     
     @PostMapping("/comprar")
@@ -101,7 +101,7 @@ public String actualizarCantidad(
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
         
-        return "redirect:/cliente/carrito";
+        return "redirect:/cliente/Carrito";
     }
     
     private Usuario obtenerUsuarioDesdeAutenticacion(Authentication authentication) {
