@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
-@RequestMapping("/cliente/carrito")
+@RequestMapping("/cliente/Carrito")
 public class CarritoController {
 
     @Autowired
