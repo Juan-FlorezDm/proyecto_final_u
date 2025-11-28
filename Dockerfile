@@ -1,30 +1,17 @@
-# Build stage: usar una imagen válida de Maven + Temurin
 FROM maven:3.9.6-eclipse-temurin-21 AS build
-
 WORKDIR /app
-
-# Copiar primero archivos clave
-COPY pom.xml .
 COPY mvnw .
 COPY .mvn .mvn
-
-
 RUN chmod +x ./mvnw
-
-# Copiar el resto del proyecto
+COPY pom.xml .
+RUN ./mvnw dependency:go-offline -B
 COPY src ./src
+RUN ./mvnw -B -DskipTests clean package
 
-# Compilar el proyecto
-RUN ./mvnw -B -DskipTests package
-
-# Runtime stage usando JRE estable
 FROM eclipse-temurin:21-jre
-
 WORKDIR /app
-
-# Copiar el JAR generado
 COPY --from=build /app/target/*.jar app.jar
 
+# Sin variable PORT - Spring Boot usa 8080 por defecto
 EXPOSE 8080
-
-ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
