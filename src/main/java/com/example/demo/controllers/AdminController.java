@@ -203,7 +203,7 @@ public String guardarProducto(
     @Autowired
     private EmailService emailService;
 
-        @PostMapping("/usuarios/solicitar-cambio-password")
+    @PostMapping("/usuarios/solicitar-cambio-password")
     public String solicitarCambioPassword(
             @RequestParam Long usuarioId,
             @RequestParam String usuarioEmail,
@@ -226,12 +226,27 @@ public String guardarProducto(
                 "✅ Solicitud de cambio de contraseña enviada para: " + usuarioNombre);
             
         } catch (Exception e) {
-            // Mostrar error detallado en consola
-            System.err.println("❌ ERROR ENVIANDO EMAIL: " + e.getMessage());
-            e.printStackTrace();
-            
-            redirectAttributes.addFlashAttribute("error", 
-                "❌ Error al enviar solicitud: " + e.getMessage());
+            try {
+                // Mostrar error detallado en consola
+                System.err.println("❌ ERROR ENVIANDO EMAIL: " + e.getMessage());
+                e.printStackTrace();
+                
+                // Verificar si es un error de configuración
+                if (e.getMessage().contains("configuration") || e.getMessage().contains("configuración")) {
+                    System.err.println("⚠️  POSIBLE ERROR DE CONFIGURACIÓN EN RENDER");
+                    System.err.println("Verifica las variables de entorno:");
+                    System.err.println("SPRING_MAIL_HOST, SPRING_MAIL_USERNAME, SPRING_MAIL_PASSWORD");
+                }
+                
+                redirectAttributes.addFlashAttribute("error", 
+                    "❌ Error al enviar solicitud: " + e.getMessage());
+                    
+            } catch (Exception innerException) {
+                // Catch interno por si falla algo dentro del catch principal
+                System.err.println("❌ ERROR CRÍTICO EN EL MANEJO DE ERRORES: " + innerException.getMessage());
+                redirectAttributes.addFlashAttribute("error", 
+                    "❌ Error crítico en el sistema");
+            }
         }
         
         return "redirect:/admin/usuarios";
