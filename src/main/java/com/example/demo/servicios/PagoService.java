@@ -23,6 +23,7 @@ public class PagoService {
     @Value("${stripe.currency}")
     private String currency;
 
+
     public Map<String, String> crearPaymentIntent(Carrito carrito) throws StripeException {
         Stripe.apiKey = secretKey;
         

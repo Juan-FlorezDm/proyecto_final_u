@@ -6,7 +6,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.itextpdf.text.Chunk;
 
 @Entity
 @Table(name = "facturas")
@@ -49,7 +48,7 @@ public class Factura {
     private String empresaDireccion = "Calle 123 #45-67, Bogotá, Colombia";
     
     @Column(nullable = false)
-    private String empresaTelefono = "+57 1 1234567";
+    private String empresaTelefono = "+57 3222434519";
     
     @Column(nullable = false)
     private String empresaEmail = "info@tiendaropa.com";
