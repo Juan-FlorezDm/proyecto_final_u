@@ -37,7 +37,7 @@
                             </td>
                             <td class="price" th:text="'$' + ${#numbers.formatDecimal(item.precioUnitario, 1, 2)}">$0.00</td>
                             <td>
-                                <form th:action="@{/cliente/carrito/actualizar}" method="post" class="quantity-form">
+                                <form th:action="@{/cliente/Carrito/actualizar}" method="post" class="quantity-form">
                                     <input type="hidden" name="productoId" th:value="${item.producto.id}">
                                     <input type="hidden" name="talla" th:value="${item.talla}">
                                     <div class="quantity-controls">
@@ -49,7 +49,7 @@
                             </td>
                             <td class="subtotal" th:text="'$' + ${#numbers.formatDecimal(item.subtotal, 1, 2)}">$0.00</td>
                             <td>
-                                <form th:action="@{/cliente/carrito/eliminar/{productoId}(productoId=${item.producto.id}, talla=${item.talla})}" 
+                                <form th:action="@{/cliente/Carrito/eliminar/{productoId}(productoId=${item.producto.id}, talla=${item.talla})}" 
                                       method="post" class="delete-form">
                                     <button type="submit" class="btn btn-delete" title="Eliminar del carrito">
                                         🗑️
