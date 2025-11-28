@@ -8,6 +8,7 @@ import com.example.demo.servicios.ProductoService;
 import com.example.demo.servicios.UsuarioService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -247,5 +248,23 @@ public String guardarProducto(
         }
         
         return "redirect:/admin/usuarios";
+    }
+
+    @Autowired
+    private Environment environment;
+    @GetMapping("/admin/debug-email")
+    @ResponseBody
+    public String debugEmail() {
+        System.out.println("🔍 DEBUG EMAIL CONFIGURATION");
+        
+        Map<String, String> config = new HashMap<>();
+        config.put("mail.host", environment.getProperty("spring.mail.host"));
+        config.put("mail.username", environment.getProperty("spring.mail.username"));
+        config.put("mail.password", environment.getProperty("spring.mail.password"));
+        config.put("CLAVE_MAIL_SERVICE", environment.getProperty("CLAVE_MAIL_SERVICE"));
+        
+        System.out.println("📊 CONFIGURATION: " + config);
+        
+        return "DEBUG: " + config.toString();
     }
 }
