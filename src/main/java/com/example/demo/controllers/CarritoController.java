@@ -21,12 +21,12 @@ public class CarritoController {
     @Autowired
     private UsuarioService usuarioService;
 
-    @GetMapping
-    public String verCarrito(Authentication authentication, Model model) {
-        Usuario usuario = obtenerUsuarioDesdeAutenticacion(authentication);
-        model.addAttribute("carrito", carritoService.obtenerCarritoPorUsuario(usuario));
-        return "cliente/carrito";
-    }
+        @GetMapping
+        public String verCarrito(Authentication authentication, Model model) {
+            Usuario usuario = obtenerUsuarioDesdeAutenticacion(authentication);
+            model.addAttribute("carrito", carritoService.obtenerCarritoPorUsuario(usuario));
+            return "cliente/carrito";
+        }
     
    
     @PostMapping("/agregar")
