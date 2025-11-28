@@ -211,10 +211,7 @@ public String guardarProducto(
             RedirectAttributes redirectAttributes) {
         
         try {
-            // USAR EL SERVICIO REAL DE EMAIL
             emailService.enviarSolicitudCambioPassword(usuarioNombre, usuarioEmail, usuarioId);
-            
-            // También mostrar en consola para debugging
             System.out.println("=== EMAIL ENVIADO ===");
             System.out.println("Para: jnendez38@gmail.com");
             System.out.println("Usuario: " + usuarioNombre);
@@ -223,7 +220,7 @@ public String guardarProducto(
             System.out.println("======================");
             
             redirectAttributes.addFlashAttribute("success", 
-                "✅ Solicitud de cambio de contraseña enviada para: " + usuarioNombre);
+                "Solicitud de cambio de contraseña enviada para: " + usuarioNombre);
             
         } catch (Exception e) {
             try {
@@ -239,13 +236,13 @@ public String guardarProducto(
                 }
                 
                 redirectAttributes.addFlashAttribute("error", 
-                    "❌ Error al enviar solicitud: " + e.getMessage());
+                    "Error al enviar solicitud: " + e.getMessage());
                     
             } catch (Exception innerException) {
                 // Catch interno por si falla algo dentro del catch principal
                 System.err.println("❌ ERROR CRÍTICO EN EL MANEJO DE ERRORES: " + innerException.getMessage());
                 redirectAttributes.addFlashAttribute("error", 
-                    "❌ Error crítico en el sistema");
+                    "Error crítico en el sistema");
             }
         }
         
