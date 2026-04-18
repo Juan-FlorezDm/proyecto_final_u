@@ -27,15 +27,12 @@ public class PagoService {
     public Map<String, String> crearPaymentIntent(Carrito carrito) throws StripeException {
         Stripe.apiKey = secretKey;
         
-        // Validar que el carrito no esté vacío
         if (carrito.getItems().isEmpty()) {
             throw new RuntimeException("El carrito está vacío");
         }
-        
-        // Convertir a centavos (Stripe requiere amount en la moneda más pequeña)
+
         long amount = carrito.getTotal().multiply(BigDecimal.valueOf(100)).longValue();
         
-        // Validar que el amount sea mayor a 0
         if (amount <= 0) {
             throw new RuntimeException("El monto total debe ser mayor a 0");
         }
