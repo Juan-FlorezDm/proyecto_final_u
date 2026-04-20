@@ -82,9 +82,9 @@ private List<Producto> filtrarPorStock(List<Producto> productos, Map<Long, Integ
                 return switch (filtroStock.toLowerCase()) {
                     case "con-stock" -> stockTotal > 0;
                     case "sin-stock" -> stockTotal == 0;
-                    case "stock-bajo" -> stockTotal > 0 && stockTotal <= 10; // Stock bajo: 10 o menos unidades
-                    case "stock-alto" -> stockTotal > 10; // Stock alto: más de 10 unidades
-                    default -> true; // "todos" o cualquier otro valor
+                    case "stock-bajo" -> stockTotal > 0 && stockTotal <= 10; 
+                    case "stock-alto" -> stockTotal > 10; 
+                    default -> true; 
                 };
             })
             .collect(Collectors.toList());
@@ -100,7 +100,7 @@ private List<Producto> filtrarPorStock(List<Producto> productos, Map<Long, Integ
 
     @PostMapping("/productos")
 public String guardarProducto(
-        @RequestParam(required = false) Long id, // ✅ Agrega este parámetro
+        @RequestParam(required = false) Long id, 
         @RequestParam String nombre,
         @RequestParam String descripcion,
         @RequestParam BigDecimal precio,
@@ -114,7 +114,6 @@ public String guardarProducto(
         Producto producto;
         
         if (id != null) {
-            // ✅ EDITAR producto existente
             producto = productoService.obtenerPorId(id)
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
             
@@ -124,8 +123,6 @@ public String guardarProducto(
             producto.setPrecio(precio);
             producto.setCategoria(categoria);
             producto.setImagenUrl(imagenUrl);
-            
-            // Limpiar tallas existentes y agregar las nuevas
             producto.getTallas().clear();
             
         } else {
@@ -138,7 +135,6 @@ public String guardarProducto(
             producto.setImagenUrl(imagenUrl);
         }
         
-        // Agregar tallas (tanto para crear como editar)
         for (int i = 0; i < tallas.size(); i++) {
             if (stocks.get(i) > 0) {
                 producto.agregarTalla(tallas.get(i), stocks.get(i));
@@ -225,13 +221,12 @@ public String guardarProducto(
             
         } catch (Exception e) {
             try {
-                // Mostrar error detallado en consola
-                System.err.println("❌ ERROR ENVIANDO EMAIL: " + e.getMessage());
+             
+                System.err.println(" ERROR ENVIANDO EMAIL: " + e.getMessage());
                 e.printStackTrace();
-                
-                // Verificar si es un error de configuración
+
                 if (e.getMessage().contains("configuration") || e.getMessage().contains("configuración")) {
-                    System.err.println("⚠️  POSIBLE ERROR DE CONFIGURACIÓN EN RENDER");
+                    System.err.println("POSIBLE ERROR DE CONFIGURACIÓN EN RENDER");
                     System.err.println("Verifica las variables de entorno:");
                     System.err.println("SPRING_MAIL_HOST, SPRING_MAIL_USERNAME, SPRING_MAIL_PASSWORD");
                 }
@@ -240,8 +235,8 @@ public String guardarProducto(
                     "Error al enviar solicitud: " + e.getMessage());
                     
             } catch (Exception innerException) {
-                // Catch interno por si falla algo dentro del catch principal
-                System.err.println("❌ ERROR CRÍTICO EN EL MANEJO DE ERRORES: " + innerException.getMessage());
+             
+                System.err.println("ERROR CRÍTICO EN EL MANEJO DE ERRORES: " + innerException.getMessage());
                 redirectAttributes.addFlashAttribute("error", 
                     "Error crítico en el sistema");
             }
@@ -255,7 +250,7 @@ public String guardarProducto(
     @GetMapping("/admin/debug-email")
     @ResponseBody
     public String debugEmail() {
-        System.out.println("🔍 DEBUG EMAIL CONFIGURATION");
+        System.out.println("DEBUG EMAIL CONFIGURATION");
         
         Map<String, String> config = new HashMap<>();
         config.put("mail.host", environment.getProperty("spring.mail.host"));
@@ -263,7 +258,7 @@ public String guardarProducto(
         config.put("mail.password", environment.getProperty("spring.mail.password"));
         config.put("CLAVE_MAIL_SERVICE", environment.getProperty("CLAVE_MAIL_SERVICE"));
         
-        System.out.println("📊 CONFIGURATION: " + config);
+        System.out.println("CONFIGURATION: " + config);
         
         return "DEBUG: " + config.toString();
     }
